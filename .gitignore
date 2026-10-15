@@ -1,0 +1,38 @@
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+*.log
+
+# Android
+android/.gradle/
+android/captures/
+android/gradle.properties.local
+android/local.properties
+android/**/gen/
+android/**/obj/
+
+# iOS
+ios/.symlinks/
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Pods/
+
+# Windows
+windows/flutter/generated_plugin_registrant.*
+
+# Linux
+linux/flutter/generated_plugin_registrant.*
+
+# Misc
+.DS_Store
+*.iml
+.idea/
+.vscode/
