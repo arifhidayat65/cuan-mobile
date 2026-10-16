@@ -67,7 +67,8 @@ class OnboardingScreen extends StatelessWidget {
                     onPressed: _finish,
                     child: Text(
                       'Lewati',
-                      style: TextStyle(color: LedgerTheme.muted),
+                      style: LedgerTheme.bodyMedium
+                          .copyWith(color: LedgerTheme.muted),
                     ),
                   ),
                 ),
@@ -182,17 +183,13 @@ class _OnboardPage extends StatelessWidget {
           Text(
             data.title,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: LedgerTheme.text,
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-            ),
+            style: LedgerTheme.displaySerif(26, weight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           Text(
             data.desc,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: LedgerTheme.bodyMedium.copyWith(
               color: LedgerTheme.muted,
               fontSize: 15,
               height: 1.6,

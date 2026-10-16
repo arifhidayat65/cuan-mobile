@@ -67,8 +67,7 @@ class _AutoUnlockBodyState extends State<_AutoUnlockBody> {
                           const SizedBox(height: 24),
                           Text(
                             'Cuan terkunci',
-                            style: TextStyle(
-                              color: LedgerTheme.text,
+                            style: LedgerTheme.headlineMedium.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                             ),
@@ -76,8 +75,8 @@ class _AutoUnlockBodyState extends State<_AutoUnlockBody> {
                           const SizedBox(height: 8),
                           Text(
                             'Verifikasi biometrik untuk membuka',
-                            style:
-                                TextStyle(color: LedgerTheme.muted),
+                            style: LedgerTheme.bodyMedium
+                                .copyWith(color: LedgerTheme.muted),
                           ),
                           if (state.failed) ...[
                             const SizedBox(height: 16),
@@ -113,8 +112,8 @@ class _AutoUnlockBodyState extends State<_AutoUnlockBody> {
                             onPressed: () => SystemNavigator.pop(),
                             child: Text(
                               'Tutup aplikasi',
-                              style:
-                                  TextStyle(color: LedgerTheme.muted),
+                              style: LedgerTheme.bodyMedium
+                                  .copyWith(color: LedgerTheme.muted),
                             ),
                           ),
                         ],

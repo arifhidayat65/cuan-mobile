@@ -134,7 +134,10 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(height: 8),
                   Text(
                     'Private finance, tracked by chat.',
-                    style: TextStyle(color: LedgerTheme.muted, fontSize: 15),
+                    style: LedgerTheme.bodyMedium.copyWith(
+                      color: LedgerTheme.muted,
+                      fontSize: 15,
+                    ),
                   ),
                   SizedBox(height: 40),
                   if (registerMode) ...[
@@ -205,7 +208,9 @@ class _LoginPageState extends State<LoginPage> {
                           : Text(
                               registerMode ? 'Daftar' : 'Masuk',
                               style: TextStyle(
-                                color: LedgerTheme.text,
+                                // Accent button bg — use onAccent for
+                                // readable contrast in both modes.
+                                color: LedgerTheme.onAccent,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -231,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                   Center(
                     child: Text(
                       'Uangmu tetap milikmu. Selalu.',
-                      style: TextStyle(color: LedgerTheme.muted, fontSize: 12),
+                      style: LedgerTheme.caption,
                     ),
                   ),
                         ],

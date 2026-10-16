@@ -73,9 +73,9 @@ class _AccountsPageState extends State<AccountsPage> {
                       children: [
                         Text(
                           'KEKAYAAN BERSIH',
-                          style: TextStyle(
-                            color: LedgerTheme.muted,
+                          style: LedgerTheme.caption.copyWith(
                             fontSize: 11,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: 1.4,
                           ),
                         ),
@@ -87,10 +87,7 @@ class _AccountsPageState extends State<AccountsPage> {
                         SizedBox(height: 4),
                         Text(
                           '${accounts.length} akun terhubung',
-                          style: TextStyle(
-                            color: LedgerTheme.muted,
-                            fontSize: 12,
-                          ),
+                          style: LedgerTheme.caption,
                         ),
                       ],
                     ),
@@ -154,8 +151,7 @@ class _AccountCard extends StatelessWidget {
                         Flexible(
                           child: Text(
                             (account['name'] as String?) ?? '-',
-                            style: TextStyle(
-                              color: LedgerTheme.text,
+                            style: LedgerTheme.bodyMedium.copyWith(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -191,18 +187,14 @@ class _AccountCard extends StatelessWidget {
                     SizedBox(height: 2),
                     Text(
                       type,
-                      style: TextStyle(
-                        color: LedgerTheme.muted,
-                        fontSize: 12,
-                      ),
+                      style: LedgerTheme.caption,
                     ),
                   ],
                 ),
               ),
               Text(
                 idr((account['balance'] as num?)?.toDouble() ?? 0),
-                style: TextStyle(
-                  color: LedgerTheme.text,
+                style: LedgerTheme.bodyMedium.copyWith(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   fontFeatures: [FontFeature.tabularFigures()],

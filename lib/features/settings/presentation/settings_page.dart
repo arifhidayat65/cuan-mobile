@@ -35,7 +35,7 @@ class _SettingsPageState extends State<SettingsPage> {
             style: LedgerTheme.displaySerif(22)),
         content: Text(
           'Kamu harus login lagi untuk mengakses datamu.',
-          style: TextStyle(color: LedgerTheme.muted),
+          style: LedgerTheme.bodyMedium.copyWith(color: LedgerTheme.muted),
         ),
         actions: [
           TextButton(
@@ -144,7 +144,10 @@ class _SettingsPageState extends State<SettingsPage> {
           '• Chat dengan Cuan AI di tab Asisten untuk mencatat transaksi otomatis.\n'
           '• Atur budget bulanan di tab Budget agar pengeluaran terkendali.\n'
           '• Hubungi: support@cuan.app',
-          style: TextStyle(color: LedgerTheme.muted, height: 1.5),
+          style: LedgerTheme.bodyMedium.copyWith(
+            color: LedgerTheme.muted,
+            height: 1.5,
+          ),
         ),
         actions: [
           FilledButton(
@@ -354,8 +357,7 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: EdgeInsets.only(left: 4, bottom: 10),
         child: Text(
           t.toUpperCase(),
-          style: TextStyle(
-            color: LedgerTheme.muted,
+          style: LedgerTheme.caption.copyWith(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.4,
@@ -389,15 +391,11 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         title: Text(
           title,
-          style: TextStyle(
-            color: LedgerTheme.text,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
+          style: LedgerTheme.bodyMedium.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: LedgerTheme.muted, fontSize: 12),
+          style: LedgerTheme.caption,
         ),
         trailing: trailing ??
             (onTap != null
@@ -464,26 +462,23 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 16),
             Text(
               'Cuan',
-              style: TextStyle(
-                color: LedgerTheme.text,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
+              style: LedgerTheme.headlineMedium.copyWith(fontSize: 22),
             ),
             Text(
               'Versi 1.0.0',
-              style: TextStyle(color: LedgerTheme.muted, fontSize: 13),
+              style: LedgerTheme.caption.copyWith(fontSize: 13),
             ),
             const SizedBox(height: 12),
             Text(
               'Catat uang masuk & keluar dengan bantuan AI.\nUangmu tetap milikmu.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: LedgerTheme.muted, fontSize: 13),
+              style: LedgerTheme.bodyMedium
+                  .copyWith(color: LedgerTheme.muted, fontSize: 13),
             ),
             const SizedBox(height: 8),
             Text(
               '© 2026 Cuan',
-              style: TextStyle(color: LedgerTheme.muted, fontSize: 12),
+              style: LedgerTheme.caption,
             ),
           ],
         ),
