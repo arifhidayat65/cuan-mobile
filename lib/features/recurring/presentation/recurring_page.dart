@@ -159,18 +159,14 @@ class RecurringPage extends StatelessWidget {
                               children: [
                                 Text(
                                   '${r['description']}',
-                                  style: TextStyle(
-                                    color: LedgerTheme.text,
+                                  style: LedgerTheme.bodyMedium.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   '${_freqLabels[r['frequency']] ?? r['frequency']} • ${idr(num.tryParse('${r['amount']}') ?? 0)}',
-                                  style: TextStyle(
-                                    color: LedgerTheme.muted,
-                                    fontSize: 12,
-                                  ),
+                                  style: LedgerTheme.caption,
                                 ),
                               ],
                             ),
@@ -342,8 +338,9 @@ class _CreateRecurringSheetState extends State<_CreateRecurringSheet> {
                   }
                 },
                 child: Text('Simpan',
-                    style: TextStyle(
-                        color: LedgerTheme.text, fontWeight: FontWeight.w700)),
+                    // Inherits foregroundColor (onAccent) from the button
+                    // style — explicit text color would break contrast.
+                    style: TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ],

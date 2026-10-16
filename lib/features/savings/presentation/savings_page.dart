@@ -92,17 +92,16 @@ class SavingsPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     '${g['name']}',
-                                    style: TextStyle(
-                                      color: LedgerTheme.text,
+                                    style: LedgerTheme.bodyLarge.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 15,
                                     ),
                                   ),
                                   Text(
                                     '${idr(current)} / ${idr(target)}',
-                                    style: TextStyle(
-                                      color: LedgerTheme.muted,
-                                      fontSize: 12,
+                                    style: LedgerTheme.caption.copyWith(
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures()
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -121,9 +120,8 @@ class SavingsPage extends StatelessWidget {
                                 ),
                                 child: Text(
                                   'Tercapai',
-                                  style: TextStyle(
+                                  style: LedgerTheme.caption.copyWith(
                                     color: LedgerTheme.income,
-                                    fontSize: 11,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -162,18 +160,16 @@ class SavingsPage extends StatelessWidget {
                           children: [
                             Text(
                               '${(progress * 100).toStringAsFixed(0)}%',
-                              style: TextStyle(
-                                color: LedgerTheme.text,
+                              style: LedgerTheme.bodyMedium.copyWith(
                                 fontWeight: FontWeight.w700,
-                                fontSize: 13,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ],
                               ),
                             ),
                             Text(
                               'Sisa ${idr(target - current)}',
-                              style: TextStyle(
-                                color: LedgerTheme.muted,
-                                fontSize: 12,
-                              ),
+                              style: LedgerTheme.caption,
                             ),
                           ],
                         ),
@@ -323,8 +319,8 @@ class _CreateSavingsSheetState extends State<_CreateSavingsSheet> {
               },
               child: Text(
                 'Simpan',
+                // Inherits foregroundColor (onAccent) from the button style.
                 style: TextStyle(
-                  color: LedgerTheme.text,
                   fontWeight: FontWeight.w700,
                 ),
               ),

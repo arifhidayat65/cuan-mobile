@@ -142,11 +142,9 @@ class _BudgetRing extends StatelessWidget {
                 ),
                 Text(
                   '${(pct * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    color: LedgerTheme.text,
-                    fontSize: 15,
+                  style: LedgerTheme.bodyLarge.copyWith(
                     fontWeight: FontWeight.w700,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
@@ -157,19 +155,15 @@ class _BudgetRing extends StatelessWidget {
             name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: LedgerTheme.text,
-              fontSize: 13,
+            style: LedgerTheme.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
           SizedBox(height: 2),
           Text(
             '${idrCompact(spent)} / ${idrCompact(limit)}',
-            style: TextStyle(
-              color: LedgerTheme.muted,
-              fontSize: 11,
-              fontFeatures: [FontFeature.tabularFigures()],
+            style: LedgerTheme.caption.copyWith(
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],
@@ -290,10 +284,11 @@ class _AddBudgetSheetState extends State<_AddBudgetSheet> {
                         )
                       : Text(
                           'Simpan',
+                          // Inherits foregroundColor (onAccent) from the
+                          // button style — explicit text color here would
+                          // break contrast on the teal background.
                           style: TextStyle(
-                              color: LedgerTheme.text,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16),
+                              fontWeight: FontWeight.w600, fontSize: 16),
                         ),
                 ),
               ),

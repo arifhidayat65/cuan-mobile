@@ -47,7 +47,9 @@ class EmptyState extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: LedgerTheme.muted, fontSize: 14),
+              style: LedgerTheme.bodyMedium.copyWith(
+                color: LedgerTheme.muted,
+              ),
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 16),

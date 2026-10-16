@@ -119,18 +119,14 @@ class DebtsPage extends StatelessWidget {
                         children: [
                           Text(
                             '${d['personName']}',
-                            style: TextStyle(
-                              color: LedgerTheme.text,
+                            style: LedgerTheme.bodyMedium.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           if ('${d['description']}'.isNotEmpty)
                             Text(
                               '${d['description']}',
-                              style: TextStyle(
-                                color: LedgerTheme.muted,
-                                fontSize: 12,
-                              ),
+                              style: LedgerTheme.caption,
                             ),
                         ],
                       ),
@@ -140,16 +136,18 @@ class DebtsPage extends StatelessWidget {
                       children: [
                         Text(
                           idr(remaining),
-                          style: TextStyle(
+                          style: LedgerTheme.bodyMedium.copyWith(
                             fontWeight: FontWeight.w700,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures()
+                            ],
                             color:
                                 settled ? LedgerTheme.muted : LedgerTheme.text,
                           ),
                         ),
                         Text(
                           settled ? 'Lunas' : 'Sisa',
-                          style: TextStyle(
-                            fontSize: 11,
+                          style: LedgerTheme.caption.copyWith(
                             color: settled
                                 ? LedgerTheme.income
                                 : LedgerTheme.muted,
@@ -339,9 +337,9 @@ class _CreateDebtSheetState extends State<_CreateDebtSheet> {
                     }
                   },
                   child: Text('Simpan',
-                      style: TextStyle(
-                          color: LedgerTheme.text,
-                          fontWeight: FontWeight.w700)),
+                      // Inherits foregroundColor (onAccent) from the button
+                      // style — explicit text color would break contrast.
+                      style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

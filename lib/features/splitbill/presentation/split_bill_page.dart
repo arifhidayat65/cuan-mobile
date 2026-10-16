@@ -109,11 +109,10 @@ class SplitBillPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label,
-                style: TextStyle(
-                    color: LedgerTheme.text, fontWeight: FontWeight.w600)),
+                style: LedgerTheme.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600)),
             Text('${value.toStringAsFixed(0)}%',
-                style: TextStyle(
-                  color: LedgerTheme.text,
+                style: LedgerTheme.bodyMedium.copyWith(
                   fontWeight: FontWeight.w700,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 )),
@@ -138,13 +137,14 @@ class SplitBillPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label,
-              style: TextStyle(
+              style: LedgerTheme.bodyMedium.copyWith(
                   color: color,
                   fontWeight: bold ? FontWeight.w700 : FontWeight.w400)),
           Text(value,
-              style: TextStyle(
+              style: LedgerTheme.bodyLarge.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                   fontSize: bold ? 20 : 14)),
         ],
       ),
