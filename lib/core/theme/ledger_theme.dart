@@ -23,6 +23,46 @@ abstract final class LedgerTheme {
   static Color get muted =>
       _isDark ? const Color(0xFFA8B3AD) : const Color(0xFF5C6663);
 
+  /// Text hierarchy — startup-fintech standard. All body text uses neutral
+  /// colors; the teal accent is reserved for interactive elements only.
+  /// displayLarge: hero numbers (balance) — tabular figures keep digits aligned.
+  static TextStyle get displayLarge => TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w700,
+        color: text,
+        letterSpacing: -0.5,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      );
+
+  /// headlineMedium: section/card titles.
+  static TextStyle get headlineMedium => TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: text,
+        letterSpacing: -0.25,
+      );
+
+  /// bodyLarge: primary body copy.
+  static TextStyle get bodyLarge => TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: text,
+      );
+
+  /// bodyMedium: secondary body copy, list values.
+  static TextStyle get bodyMedium => TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: text,
+      );
+
+  /// caption: labels, hints, timestamps — always muted, never accent.
+  static TextStyle get caption => TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: muted,
+      );
+
   // Brand (same both modes)
   static const accent = Color(0xFF5EEAD4); // teal — AI + primary actions
   static const accentDim = Color(0xFF2A3D38);
