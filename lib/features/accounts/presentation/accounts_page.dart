@@ -176,7 +176,10 @@ class _AccountCard extends StatelessWidget {
                             child: Text(
                               'UTAMA',
                               style: TextStyle(
-                                color: Colors.white,
+                                // Chip accentDim is mode-independent dark;
+                                // pick readable foreground via theme helper.
+                                color: LedgerTheme.foregroundForColor(
+                                    LedgerTheme.accentDim),
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                               ),
