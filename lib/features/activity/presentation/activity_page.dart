@@ -7,6 +7,7 @@ import '../../../core/widgets/transaction_tile.dart';
 import '../bloc/activity_cubit.dart';
 import '../bloc/activity_state.dart';
 import '../../recurring/presentation/recurring_page.dart';
+import 'add_transaction_sheet.dart';
 
 /// Activity — transaction ledger with filter chips. Flush list, no cards.
 class ActivityPage extends StatefulWidget {
@@ -21,6 +22,11 @@ class _ActivityPageState extends State<ActivityPage> {
   void initState() {
     super.initState();
     context.read<ActivityCubit>().load();
+  }
+
+  Future<void> _openAddSheet() async {
+    final saved = await AddTransactionSheet.show(context);
+    if (saved && mounted) context.read<ActivityCubit>().load();
   }
 
   @override
@@ -39,6 +45,13 @@ class _ActivityPageState extends State<ActivityPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddSheet,
+        backgroundColor: LedgerTheme.accent,
+        foregroundColor: LedgerTheme.onAccent,
+        tooltip: 'Tambah transaksi',
+        child: const Icon(Icons.add),
       ),
       body: SafeArea(
         child: Column(

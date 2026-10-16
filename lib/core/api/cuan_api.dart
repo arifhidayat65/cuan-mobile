@@ -192,6 +192,7 @@ class CuanApi {
     required int categoryId,
     required String accountId,
     String? description,
+    String? date,
   }) async {
     await dio.post(
       '/api/transactions',
@@ -201,7 +202,8 @@ class CuanApi {
         'categoryId': categoryId,
         'accountId': accountId,
         'description': description ?? '',
-        'date': DateTime.now().toIso8601String().split('T').first,
+        // Backend accepts an explicit date (YYYY-MM-DD); defaults to today.
+        'date': date ?? DateTime.now().toIso8601String().split('T').first,
       },
     );
   }
