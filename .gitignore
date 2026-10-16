@@ -36,3 +36,8 @@ linux/flutter/generated_plugin_registrant.*
 *.iml
 .idea/
 .vscode/
+
+# Build outputs (never commit)
+*.apk
+*.aab
+*.ipa
