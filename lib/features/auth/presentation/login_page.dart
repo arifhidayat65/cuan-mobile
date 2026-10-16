@@ -100,10 +100,19 @@ class _LoginPageState extends State<LoginPage> {
         return Scaffold(
           backgroundColor: LedgerTheme.bg,
           body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.all(28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: LayoutBuilder(
+              // QA-006: scrollable so the form never overflows on small
+              // screens or when the keyboard is open. ConstrainedBox +
+              // IntrinsicHeight keep the Spacers working on tall screens.
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: EdgeInsets.all(28),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Spacer(),
                   Container(
@@ -225,7 +234,11 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(color: LedgerTheme.muted, fontSize: 12),
                     ),
                   ),
-                ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
