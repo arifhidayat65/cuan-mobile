@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Backup JSON files live in <files>/app_flutter/backups/ -->
+    <files-path name="backups" path="app_flutter/backups/" />
+</paths>

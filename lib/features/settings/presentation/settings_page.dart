@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/api/cuan_api.dart';
+import '../data/backup_service.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../auth/bloc/auth_bloc.dart';
@@ -19,6 +19,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool _backingUp = false;
+
   @override
   void initState() {
     super.initState();
@@ -304,6 +306,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 icon: Icons.backup_outlined,
                 title: 'Backup data',
                 subtitle: 'Unduh semua data sebagai JSON',
+                trailing: _backingUp
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: LedgerTheme.accent,
+                        ),
+                      )
+                    : null,
                 onTap: () => _backupData(context),
               ),
               const SizedBox(height: 16),
@@ -406,26 +418,27 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _backupData(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Menyiapkan backup…')),
-    );
+    if (_backingUp) return;
+    setState(() => _backingUp = true);
     try {
-      final data = await api.backupExport();
-      final txCount = (data['transactions'] as List?)?.length ?? 0;
+      final result = await BackupService().backup();
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Backup siap: $txCount transaksi diekspor.',
-          ),
-          duration: const Duration(seconds: 4),
+          content: Text('Backup tersimpan: ${result.fileName}'),
+          duration: const Duration(seconds: 5),
         ),
       );
-    } catch (e) {
+    } on BackupException catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal: $e')),
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: LedgerTheme.rose,
+        ),
       );
+    } finally {
+      if (mounted) setState(() => _backingUp = false);
     }
   }
 
