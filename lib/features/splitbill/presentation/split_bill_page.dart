@@ -112,7 +112,11 @@ class SplitBillPage extends StatelessWidget {
                 style: TextStyle(
                     color: LedgerTheme.text, fontWeight: FontWeight.w600)),
             Text('${value.toStringAsFixed(0)}%',
-                style: const TextStyle(color: LedgerTheme.accent)),
+                style: TextStyle(
+                  color: LedgerTheme.text,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                )),
           ],
         ),
         Slider(

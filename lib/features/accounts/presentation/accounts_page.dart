@@ -176,7 +176,7 @@ class _AccountCard extends StatelessWidget {
                             child: Text(
                               'UTAMA',
                               style: TextStyle(
-                                color: LedgerTheme.accent,
+                                color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                               ),

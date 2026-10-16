@@ -401,7 +401,7 @@ class _MonthStrip extends StatelessWidget {
               ),
               Container(width: 1, height: 40, color: LedgerTheme.border),
               Expanded(
-                child: _stat('Bersih', net, LedgerTheme.teal, Icons.balance),
+                child: _stat('Bersih', net, LedgerTheme.text, Icons.balance),
               ),
             ],
           ),
