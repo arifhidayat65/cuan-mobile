@@ -1,6 +1,7 @@
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'rate_limit_interceptor.dart';
@@ -71,7 +72,11 @@ class CuanApi {
   Future<void> signOut() async {
     try {
       await dio.post('/auth/api/sign-out');
-    } catch (_) {}
+    } catch (e) {
+      // Best-effort sign-out: log in debug so failures are visible to devs,
+      // but don't block the user from being signed out locally.
+      debugPrint('CuanApi.signOut failed: $e');
+    }
   }
 
   /// Register this device for push notifications (FCM).
@@ -84,7 +89,11 @@ class CuanApi {
   Future<void> unregisterFcmToken(String token) async {
     try {
       await dio.delete('/api/fcm-tokens', data: {'token': token});
-    } catch (_) {}
+    } catch (e) {
+      // Best-effort cleanup: log in debug so failures are visible to devs,
+      // but don't block the sign-out flow.
+      debugPrint('CuanApi.unregisterFcmToken failed: $e');
+    }
   }
 
   Future<List<Map<String, dynamic>>> accounts() async {
