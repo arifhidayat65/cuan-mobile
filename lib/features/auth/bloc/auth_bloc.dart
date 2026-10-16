@@ -16,6 +16,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginSubmitted>(_onLoginSubmitted);
     on<AuthRegisterSubmitted>(_onRegisterSubmitted);
     on<AuthModeToggled>(_onModeToggled);
+    on<AuthValidationError>(_onValidationError);
     on<AuthLogoutRequested>(_onLogoutRequested);
   }
 
@@ -120,6 +121,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
+  }
+
+  /// Surfaces a client-side validation failure through the inline form
+  /// error UI. No network call is made.
+  void _onValidationError(AuthValidationError event, Emitter<AuthState> emit) {
+    final current = state;
+    if (current is! AuthFormState || current.submitting) return;
+    emit(current.copyWith(errorMessage: event.message));
   }
 
   Future<void> _onLogoutRequested(

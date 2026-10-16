@@ -6,6 +6,36 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+/// Simple email shape check used by [validateAuthForm].
+final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+/// Client-side validation for the auth form (QA-004).
+/// Returns the message to show inline, or null when the input is valid.
+String? validateAuthForm({
+  required bool registerMode,
+  required String name,
+  required String email,
+  required String password,
+}) {
+  final trimmedEmail = email.trim();
+  if (registerMode && name.trim().isEmpty) {
+    return 'Nama tidak boleh kosong.';
+  }
+  if (trimmedEmail.isEmpty) {
+    return 'Email tidak boleh kosong.';
+  }
+  if (!_emailPattern.hasMatch(trimmedEmail)) {
+    return 'Format email tidak valid.';
+  }
+  if (password.isEmpty) {
+    return 'Kata sandi tidak boleh kosong.';
+  }
+  if (registerMode && password.length < 8) {
+    return 'Kata sandi minimal 8 karakter.';
+  }
+  return null;
+}
+
 /// Midnight Ledger auth — quiet, premium, no marketing fluff.
 /// Supports both sign-in and sign-up. State lives in [AuthBloc].
 class LoginPage extends StatefulWidget {
@@ -29,8 +59,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _submit(AuthFormState form) {
+    final registerMode = form.mode == AuthMode.register;
+    final validationError = validateAuthForm(
+      registerMode: registerMode,
+      name: _name.text,
+      email: _email.text,
+      password: _password.text,
+    );
+    if (validationError != null) {
+      // Client-side failure: show inline, skip the network call entirely.
+      context.read<AuthBloc>().add(AuthValidationError(validationError));
+      return;
+    }
     final bloc = context.read<AuthBloc>();
-    if (form.mode == AuthMode.register) {
+    if (registerMode) {
       bloc.add(
         AuthRegisterSubmitted(
           name: _name.text.trim(),

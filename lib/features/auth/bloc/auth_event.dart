@@ -43,6 +43,17 @@ final class AuthModeToggled extends AuthEvent {
   const AuthModeToggled();
 }
 
+/// Client-side form validation failed — surfaces the message through the
+/// same inline error UI as server errors, without a network call.
+final class AuthValidationError extends AuthEvent {
+  const AuthValidationError(this.message);
+
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
+}
+
 final class AuthLogoutRequested extends AuthEvent {
   const AuthLogoutRequested();
 }
