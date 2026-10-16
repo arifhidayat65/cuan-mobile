@@ -49,7 +49,67 @@ class HealthScoreCard extends StatelessWidget {
             );
           }
           final data = state.data;
-          if (data == null) return const SizedBox.shrink();
+          final error = state.errorMessage;
+          if (data == null) {
+            // Explain the failure instead of vanishing silently.
+            if (error == null) return const SizedBox.shrink();
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: LedgerTheme.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: LedgerTheme.border),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: LedgerTheme.surface2,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.speed_outlined,
+                      color: LedgerTheme.muted,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Skor Keuangan',
+                          style: LedgerTheme.bodyMedium.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          error,
+                          style: LedgerTheme.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        context.read<HealthScoreCubit>().load(),
+                    child: Text(
+                      'Coba lagi',
+                      style: TextStyle(
+                        color: LedgerTheme.accent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
 
           final score = (data['score'] as num).toInt();
           final grade = '${data['grade']}';
