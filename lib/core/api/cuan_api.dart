@@ -129,6 +129,26 @@ class CuanApi {
     return List<Map<String, dynamic>>.from(res.data['data'] as List);
   }
 
+  /// Create a financial account.
+  /// [type] must be one of: bank, e-wallet, cash, other.
+  Future<Map<String, dynamic>> createAccount({
+    required String name,
+    required String type,
+    double? initialBalance,
+  }) async {
+    final res = await dio.post('/api/financial-accounts', data: {
+      'name': name,
+      'type': type,
+      if (initialBalance != null) 'initialBalance': initialBalance,
+    });
+    return Map<String, dynamic>.from(res.data['data'] as Map);
+  }
+
+  /// Delete a financial account.
+  Future<void> deleteAccount(String id) async {
+    await dio.delete('/api/financial-accounts/$id');
+  }
+
   Future<List<Map<String, dynamic>>> transactions({int limit = 50}) async {
     final res =
         await dio.get('/api/transactions', queryParameters: {'limit': limit});

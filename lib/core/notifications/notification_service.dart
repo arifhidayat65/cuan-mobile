@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../api/cuan_api.dart';
+import 'push_preferences.dart';
 
 /// Background message handler — must be a top-level function.
 /// The OS shows the system-tray notification for messages that carry a
@@ -28,11 +29,25 @@ class NotificationService {
   bool _firebaseOk = false;
   bool _ready = false;
 
+  /// Whether push is currently enabled per the settings toggle.
+  /// Read from persisted preferences on [init]; updated by [setPushEnabled].
+  bool _pushEnabled = true;
+  bool _pushActive = false;
+
+  /// Persisted toggle state — the settings switch reads/writes through here.
+  Future<bool> isPushEnabled() => PushPreferences().isEnabled();
+
   /// Initialize Firebase, request permission, show foreground heads-up
   /// notifications, and sync the device token to the backend.
+  ///
+  /// Respects the persisted push toggle: when disabled, Firebase still
+  /// initializes (harmless) but no permission is requested and no token is
+  /// synced, so the device receives nothing.
   Future<void> init() async {
     if (_ready) return;
     _ready = true;
+
+    _pushEnabled = await PushPreferences().isEnabled();
 
     try {
       await Firebase.initializeApp();
@@ -41,6 +56,17 @@ class NotificationService {
       return;
     }
     _firebaseOk = true;
+
+    if (_pushEnabled) {
+      await _activatePush();
+    }
+  }
+
+  /// Wire up permission, channel, listeners and token sync.
+  /// Idempotent — safe to call when re-enabling from settings.
+  Future<void> _activatePush() async {
+    if (_pushActive) return;
+    _pushActive = true;
 
     final messaging = FirebaseMessaging.instance;
 
@@ -73,10 +99,33 @@ class NotificationService {
     messaging.onTokenRefresh.listen(_sendTokenToBackend);
   }
 
+  /// Apply the settings toggle: persists the preference and actually
+  /// controls push. Disabling unregisters the device token (best-effort)
+  /// so no pushes arrive; enabling re-activates permission + token sync.
+  Future<void> setPushEnabled(bool enabled) async {
+    await PushPreferences().setEnabled(enabled);
+    _pushEnabled = enabled;
+    if (enabled) {
+      if (!_firebaseOk) {
+        try {
+          await Firebase.initializeApp();
+          _firebaseOk = true;
+        } catch (_) {
+          // Firebase not configured — preference saved; nothing to activate.
+          return;
+        }
+      }
+      await _activatePush();
+      await syncToken();
+    } else {
+      await onLogout();
+    }
+  }
+
   /// Push the current FCM token to the backend. Safe to call when logged out
   /// (the request 401s and is swallowed) — call again after login.
   Future<void> syncToken() async {
-    if (!_firebaseOk) return;
+    if (!_firebaseOk || !_pushEnabled) return;
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null) {
@@ -110,6 +159,7 @@ class NotificationService {
   }
 
   Future<void> _showForeground(RemoteMessage message) async {
+    if (!_pushEnabled) return;
     final notification = message.notification;
     if (notification == null) return;
     await _local.show(

@@ -10,6 +10,7 @@ import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../bloc/accounts_cubit.dart';
 import '../bloc/accounts_state.dart';
+import 'add_account_sheet.dart';
 
 /// Accounts — stacked balance cards with per-account detail.
 /// Sign out lives here (mobile convention).
@@ -40,6 +41,13 @@ class _AccountsPageState extends State<AccountsPage> {
                 context.read<AuthBloc>().add(const AuthLogoutRequested()),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => AddAccountSheet.show(context),
+        backgroundColor: LedgerTheme.accent,
+        foregroundColor: LedgerTheme.onAccent,
+        tooltip: 'Tambah akun',
+        child: const Icon(Icons.add),
       ),
       body: SafeArea(
         child: BlocConsumer<AccountsCubit, AccountsState>(
@@ -105,10 +113,13 @@ class _AccountsPageState extends State<AccountsPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  ...accounts
-                      .asMap()
-                      .entries
-                      .map((e) => _AccountCard(account: e.value, index: e.key)),
+                  ...accounts.asMap().entries.map(
+                        (e) => _AccountCard(
+                          account: e.value,
+                          index: e.key,
+                          onDelete: () => _confirmDelete(context, e.value),
+                        ),
+                      ),
                 ],
               ),
             );
@@ -117,12 +128,49 @@ class _AccountsPageState extends State<AccountsPage> {
       ),
     );
   }
+
+  /// Long-press delete with confirmation. Failures (e.g. account still has
+  /// transactions, or the default account) surface through the cubit's
+  /// error state, which the page already renders with a retry button.
+  Future<void> _confirmDelete(
+      BuildContext context, Map<String, dynamic> account) async {
+    final name = (account['name'] as String?) ?? 'akun ini';
+    final id = account['id'] as String?;
+    if (id == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: LedgerTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Text('Hapus akun?', style: LedgerTheme.headlineMedium),
+        content: Text(
+          '"$name" akan dihapus permanen.',
+          style: LedgerTheme.bodyMedium.copyWith(color: LedgerTheme.muted),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Batal', style: TextStyle(color: LedgerTheme.muted)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Hapus', style: TextStyle(color: LedgerTheme.expense)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await context.read<AccountsCubit>().deleteAccount(id);
+  }
 }
 
 class _AccountCard extends StatelessWidget {
   final Map<String, dynamic> account;
   final int index;
-  const _AccountCard({required this.account, this.index = 0});
+  final VoidCallback? onDelete;
+  const _AccountCard({required this.account, this.index = 0, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -135,8 +183,10 @@ class _AccountCard extends StatelessWidget {
     };
     final isDefault = account['isDefault'] == true;
 
-    return FadeIn(
-        child: Container(
+    return GestureDetector(
+      onLongPress: onDelete,
+      child: FadeIn(
+          child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -214,6 +264,7 @@ class _AccountCard extends StatelessWidget {
               ),
             ],
           ),
-        ));
+        )),
+  );
   }
 }
