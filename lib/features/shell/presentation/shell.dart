@@ -65,7 +65,13 @@ class _LedgerNav extends StatelessWidget {
               _item(0, Icons.home_outlined, Icons.home, 'Home'),
               _item(1, Icons.receipt_long_outlined, Icons.receipt_long,
                   'Activity'),
-              _assistantFab(),
+              // Context-aware center button: when the AI tab is already
+              // active, the raised FAB is redundant, so render it as a plain
+              // nav item. Otherwise keep the raised FAB as a shortcut.
+              if (index == 2)
+                _item(2, Icons.auto_awesome_outlined, Icons.auto_awesome, 'AI')
+              else
+                _assistantFab(),
               _item(3, Icons.pie_chart_outline, Icons.pie_chart, 'Budgets'),
               _item(4, Icons.wallet_outlined, Icons.wallet, 'Accounts'),
             ],
@@ -106,21 +112,24 @@ class _LedgerNav extends StatelessWidget {
   }
 
   /// The "super power" — raised Assistant button at the center.
+  /// Shown only when the AI tab is NOT active (it's redundant there).
+  /// Kept compact and its shadow cast downward so it never overlaps
+  /// content above the nav bar (e.g. the chat input on the AI screen).
   Widget _assistantFab() {
     final active = index == 2;
     return GestureDetector(
       onTap: () => onTap(2),
       child: Container(
-        width: 60,
-        height: 60,
-        margin: EdgeInsets.only(top: 2),
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: active ? LedgerTheme.accent : LedgerTheme.accentDim,
           boxShadow: [
             BoxShadow(
-              color: LedgerTheme.accent.withValues(alpha: 0.22),
-              blurRadius: 14,
+              color: LedgerTheme.accent.withValues(alpha: 0.20),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),

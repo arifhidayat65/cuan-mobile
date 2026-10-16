@@ -155,7 +155,7 @@ class _AssistantPageState extends State<AssistantPage> {
               },
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Row(
                 children: [
                   Expanded(
@@ -203,20 +203,36 @@ class _AssistantPageState extends State<AssistantPage> {
                   BlocBuilder<AssistantCubit, AssistantState>(
                     buildWhen: (a, b) => a.busy != b.busy,
                     builder: (context, state) {
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: LedgerTheme.accent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.arrow_upward,
-                            color: LedgerTheme.bg,
-                          ),
-                          onPressed: state.busy ? null : () => _send(),
-                        ),
+                      // Also disable when the field is empty, so the button
+                      // never looks tappable with nothing to send.
+                      return ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: _ctrl,
+                        builder: (context, value, _) {
+                          final disabled =
+                              state.busy || value.text.trim().isEmpty;
+                          return Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: disabled
+                                  ? LedgerTheme.surface2
+                                  : LedgerTheme.accent,
+                              shape: BoxShape.circle,
+                              border: disabled
+                                  ? Border.all(color: LedgerTheme.border)
+                                  : null,
+                            ),
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.arrow_upward,
+                                color: disabled
+                                    ? LedgerTheme.muted
+                                    : LedgerTheme.bg,
+                              ),
+                              onPressed: disabled ? null : () => _send(),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
