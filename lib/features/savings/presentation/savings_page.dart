@@ -207,124 +207,194 @@ class SavingsPage extends StatelessWidget {
   }
 
   void _showCreateSheet(BuildContext context) {
-    final nameCtrl = TextEditingController();
-    final targetCtrl = TextEditingController();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: LedgerTheme.surface,
       // M5: theme radius (28) + drag handle.
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 12,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: LedgerTheme.border,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Target Baru',
-              style: LedgerTheme.displaySerif(22),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nama (mis. DP Motor)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: targetCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Target (Rp)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: LedgerTheme.accent,
-                  foregroundColor: LedgerTheme.onAccent,
-                ),
-                onPressed: () async {
-                  if (nameCtrl.text.trim().isEmpty ||
-                      targetCtrl.text.trim().isEmpty) return;
-                  final ok = await context.read<SavingsCubit>().create(
-                        name: nameCtrl.text.trim(),
-                        targetAmount: targetCtrl.text.trim(),
-                      );
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(ok ? 'Target dibuat' : 'Gagal')),
-                    );
-                  }
-                },
-                child: Text('Simpan',
-                    style: TextStyle(
-                        color: LedgerTheme.text, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
-      ),
+      builder: (_) => const _CreateSavingsSheet(),
     );
   }
 
   void _showAddFunds(BuildContext context, String id) {
-    final ctrl = TextEditingController();
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: LedgerTheme.surface,
-        title: Text('Tambah dana', style: LedgerTheme.displaySerif(22)),
-        content: TextField(
-          controller: ctrl,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Nominal (Rp)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Batal'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: LedgerTheme.accent,
-              foregroundColor: LedgerTheme.onAccent,
+      builder: (_) => _AddFundsDialog(id: id),
+    );
+  }
+}
+
+/// QA-003: sheet content as StatefulWidget so controllers survive rebuilds
+/// (keyboard open/close re-invokes the bottom-sheet builder).
+class _CreateSavingsSheet extends StatefulWidget {
+  const _CreateSavingsSheet();
+
+  @override
+  State<_CreateSavingsSheet> createState() => _CreateSavingsSheetState();
+}
+
+class _CreateSavingsSheetState extends State<_CreateSavingsSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _targetCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController();
+    _targetCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _targetCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 12,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: LedgerTheme.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-            onPressed: () async {
-              if (ctrl.text.trim().isEmpty) return;
-              await context.read<SavingsCubit>().addFunds(id, ctrl.text.trim());
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Tambah'),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Target Baru',
+            style: LedgerTheme.displaySerif(22),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _nameCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Nama (mis. DP Motor)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _targetCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Target (Rp)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: LedgerTheme.accent,
+                foregroundColor: LedgerTheme.onAccent,
+              ),
+              onPressed: () async {
+                if (_nameCtrl.text.trim().isEmpty ||
+                    _targetCtrl.text.trim().isEmpty) {
+                  return;
+                }
+                final ok = await context.read<SavingsCubit>().create(
+                      name: _nameCtrl.text.trim(),
+                      targetAmount: _targetCtrl.text.trim(),
+                    );
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(ok ? 'Target dibuat' : 'Gagal')),
+                  );
+                }
+              },
+              child: Text(
+                'Simpan',
+                style: TextStyle(
+                  color: LedgerTheme.text,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// QA-003: dialog content as StatefulWidget so the controller survives
+/// rebuilds and is properly disposed.
+class _AddFundsDialog extends StatefulWidget {
+  const _AddFundsDialog({required this.id});
+
+  final String id;
+
+  @override
+  State<_AddFundsDialog> createState() => _AddFundsDialogState();
+}
+
+class _AddFundsDialogState extends State<_AddFundsDialog> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: LedgerTheme.surface,
+      title: Text('Tambah dana', style: LedgerTheme.displaySerif(22)),
+      content: TextField(
+        controller: _ctrl,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Nominal (Rp)',
+          border: OutlineInputBorder(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Batal'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: LedgerTheme.accent,
+            foregroundColor: LedgerTheme.onAccent,
+          ),
+          onPressed: () async {
+            if (_ctrl.text.trim().isEmpty) return;
+            await context
+                .read<SavingsCubit>()
+                .addFunds(widget.id, _ctrl.text.trim());
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: const Text('Tambah'),
+        ),
+      ],
     );
   }
 }

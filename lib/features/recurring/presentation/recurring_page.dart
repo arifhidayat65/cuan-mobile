@@ -212,13 +212,35 @@ class RecurringPage extends StatelessWidget {
   }
 }
 
-class _CreateRecurringSheet extends StatelessWidget {
+class _CreateRecurringSheet extends StatefulWidget {
   const _CreateRecurringSheet();
 
   @override
+  State<_CreateRecurringSheet> createState() => _CreateRecurringSheetState();
+}
+
+class _CreateRecurringSheetState extends State<_CreateRecurringSheet> {
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _amountCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // QA-003: controllers must survive rebuilds (e.g. keyboard open/close
+    // re-invokes the bottom-sheet builder) — create once, dispose once.
+    _descCtrl = TextEditingController();
+    _amountCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _descCtrl.dispose();
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final descCtrl = TextEditingController();
-    final amountCtrl = TextEditingController();
     return BlocBuilder<RecurringFormCubit, RecurringFormState>(
       builder: (context, form) => Padding(
         padding: EdgeInsets.only(
@@ -258,7 +280,7 @@ class _CreateRecurringSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: descCtrl,
+              controller: _descCtrl,
               decoration: const InputDecoration(
                 labelText: 'Deskripsi (mis. Gaji, Netflix)',
                 border: OutlineInputBorder(),
@@ -266,7 +288,7 @@ class _CreateRecurringSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: amountCtrl,
+              controller: _amountCtrl,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: 'Nominal (Rp)',
@@ -298,8 +320,8 @@ class _CreateRecurringSheet extends StatelessWidget {
                   foregroundColor: LedgerTheme.onAccent,
                 ),
                 onPressed: () async {
-                  final desc = descCtrl.text.trim();
-                  final amount = amountCtrl.text.trim();
+                  final desc = _descCtrl.text.trim();
+                  final amount = _amountCtrl.text.trim();
                   if (desc.isEmpty || amount.isEmpty) return;
                   final ok = await context.read<RecurringCubit>().create(
                         type: form.type,

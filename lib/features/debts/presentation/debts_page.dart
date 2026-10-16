@@ -109,9 +109,8 @@ class DebtsPage extends StatelessWidget {
                     GradientAvatar.solid(
                       icon:
                           isHutang ? Icons.arrow_upward : Icons.arrow_downward,
-                      iconColor: isHutang
-                          ? LedgerTheme.expense
-                          : LedgerTheme.income,
+                      iconColor:
+                          isHutang ? LedgerTheme.expense : LedgerTheme.income,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -194,9 +193,6 @@ class DebtsPage extends StatelessWidget {
   }
 
   void _showCreateSheet(BuildContext context) {
-    final nameCtrl = TextEditingController();
-    final amountCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
     final initialType = context.read<DebtCubit>().state.filter;
     showModalBottomSheet(
       context: context,
@@ -206,145 +202,217 @@ class DebtsPage extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => BlocProvider(
-        create: (_) => DebtFormCubit(initialType),
-        child: BlocBuilder<DebtFormCubit, String>(
-          builder: (ctx, type) => Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 12,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: LedgerTheme.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+      builder: (_) => _CreateDebtSheet(initialType: initialType),
+    );
+  }
+
+  void _showPay(BuildContext context, String id, bool isHutang) {
+    showDialog(
+      context: context,
+      builder: (_) => _PayDialog(id: id, isHutang: isHutang),
+    );
+  }
+}
+
+/// QA-003: sheet content as StatefulWidget so controllers survive rebuilds
+/// (keyboard open/close re-invokes the bottom-sheet builder).
+class _CreateDebtSheet extends StatefulWidget {
+  const _CreateDebtSheet({required this.initialType});
+
+  final String initialType;
+
+  @override
+  State<_CreateDebtSheet> createState() => _CreateDebtSheetState();
+}
+
+class _CreateDebtSheetState extends State<_CreateDebtSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _amountCtrl;
+  late final TextEditingController _descCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController();
+    _amountCtrl = TextEditingController();
+    _descCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _amountCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => DebtFormCubit(widget.initialType),
+      child: BlocBuilder<DebtFormCubit, String>(
+        builder: (ctx, type) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 12,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: LedgerTheme.border,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text('Catat Baru', style: LedgerTheme.displaySerif(22)),
-                const SizedBox(height: 16),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'hutang', label: Text('Hutang')),
-                    ButtonSegment(value: 'piutang', label: Text('Piutang')),
-                  ],
-                  selected: {type},
-                  onSelectionChanged: (s) =>
-                      ctx.read<DebtFormCubit>().setType(s.first),
+              ),
+              const SizedBox(height: 16),
+              Text('Catat Baru', style: LedgerTheme.displaySerif(22)),
+              const SizedBox(height: 16),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'hutang', label: Text('Hutang')),
+                  ButtonSegment(value: 'piutang', label: Text('Piutang')),
+                ],
+                selected: {type},
+                onSelectionChanged: (s) =>
+                    ctx.read<DebtFormCubit>().setType(s.first),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nama orang',
+                  border: OutlineInputBorder(),
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama orang',
-                    border: OutlineInputBorder(),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _amountCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Nominal (Rp)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Keterangan (opsional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: LedgerTheme.accent,
+                    foregroundColor: LedgerTheme.onAccent,
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: amountCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Nominal (Rp)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: descCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Keterangan (opsional)',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: LedgerTheme.accent,
-                      foregroundColor: LedgerTheme.onAccent,
-                    ),
-                    onPressed: () async {
-                      if (nameCtrl.text.trim().isEmpty ||
-                          amountCtrl.text.trim().isEmpty) return;
-                      final ok = await context.read<DebtCubit>().create(
-                            type: type,
-                            personName: nameCtrl.text.trim(),
-                            amount: amountCtrl.text.trim(),
-                            description: descCtrl.text.trim().isEmpty
-                                ? null
-                                : descCtrl.text.trim(),
-                          );
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(ok ? 'Tersimpan' : 'Gagal')),
+                  onPressed: () async {
+                    if (_nameCtrl.text.trim().isEmpty ||
+                        _amountCtrl.text.trim().isEmpty) {
+                      return;
+                    }
+                    final ok = await context.read<DebtCubit>().create(
+                          type: type,
+                          personName: _nameCtrl.text.trim(),
+                          amount: _amountCtrl.text.trim(),
+                          description: _descCtrl.text.trim().isEmpty
+                              ? null
+                              : _descCtrl.text.trim(),
                         );
-                      }
-                    },
-                    child: Text('Simpan',
-                        style: TextStyle(
-                            color: LedgerTheme.text,
-                            fontWeight: FontWeight.w700)),
-                  ),
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(ok ? 'Tersimpan' : 'Gagal')),
+                      );
+                    }
+                  },
+                  child: Text('Simpan',
+                      style: TextStyle(
+                          color: LedgerTheme.text,
+                          fontWeight: FontWeight.w700)),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  void _showPay(BuildContext context, String id, bool isHutang) {
-    final ctrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: LedgerTheme.surface,
-        title: Text(
-          isHutang ? 'Bayar hutang' : 'Terima piutang',
-          style: LedgerTheme.displaySerif(22),
-        ),
-        content: TextField(
-          controller: ctrl,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Nominal (Rp)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Batal'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: LedgerTheme.accent,
-              foregroundColor: LedgerTheme.onAccent,
-            ),
-            onPressed: () async {
-              if (ctrl.text.trim().isEmpty) return;
-              await context.read<DebtCubit>().pay(id, ctrl.text.trim());
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('OK'),
-          ),
-        ],
+/// QA-003: dialog content as StatefulWidget so the controller survives
+/// rebuilds and is properly disposed.
+class _PayDialog extends StatefulWidget {
+  const _PayDialog({required this.id, required this.isHutang});
+
+  final String id;
+  final bool isHutang;
+
+  @override
+  State<_PayDialog> createState() => _PayDialogState();
+}
+
+class _PayDialogState extends State<_PayDialog> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: LedgerTheme.surface,
+      title: Text(
+        widget.isHutang ? 'Bayar hutang' : 'Terima piutang',
+        style: LedgerTheme.displaySerif(22),
       ),
+      content: TextField(
+        controller: _ctrl,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(
+          labelText: 'Nominal (Rp)',
+          border: OutlineInputBorder(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Batal'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: LedgerTheme.accent,
+            foregroundColor: LedgerTheme.onAccent,
+          ),
+          onPressed: () async {
+            if (_ctrl.text.trim().isEmpty) return;
+            await context.read<DebtCubit>().pay(widget.id, _ctrl.text.trim());
+            if (context.mounted) Navigator.pop(context);
+          },
+          child: const Text('OK'),
+        ),
+      ],
     );
   }
 }
