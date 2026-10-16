@@ -1,13 +1,25 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Biometric authentication service — fingerprint/face unlock.
 class BiometricService {
-  BiometricService._();
-  static final instance = BiometricService._();
+  BiometricService._() : _auth = LocalAuthentication();
 
-  final _auth = LocalAuthentication();
+  @visibleForTesting
+  BiometricService.forTest(this._auth);
+
+  static BiometricService instance = BiometricService._();
+
+  /// Swap the singleton in tests. Restored via [resetInstance].
+  @visibleForTesting
+  static set testInstance(BiometricService value) => instance = value;
+
+  @visibleForTesting
+  static void resetInstance() => instance = BiometricService._();
+
+  final LocalAuthentication _auth;
   static const _keyEnabled = 'biometric_enabled';
 
   /// Check if device supports biometric auth.
