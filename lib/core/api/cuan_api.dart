@@ -4,8 +4,10 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'auth_state_cache.dart';
 import 'rate_limit_interceptor.dart';
 import 'secure_cookie_storage.dart';
+import 'session_interceptor.dart';
 
 /// API client for the Cuan backend.
 /// Uses persistent cookies (Better Auth session) via dio_cookie_manager.
@@ -14,6 +16,12 @@ class CuanApi {
 
   late final Dio dio;
   bool _ready = false;
+
+  /// Local login-state cache: avoids a network hit on every app start.
+  /// Authoritative state still lives server-side; a 401 on any
+  /// authenticated call invalidates the cache (see
+  /// [SessionInvalidatedInterceptor]).
+  final AuthStateCache _authState = AuthStateCache();
 
   Future<void> init() async {
     if (_ready) return;
@@ -41,14 +49,28 @@ class CuanApi {
     );
     dio.interceptors.add(CookieManager(jar));
     dio.interceptors.add(RateLimitInterceptor());
+    dio.interceptors.add(
+      SessionInvalidatedInterceptor(
+        onSessionInvalidated: () => _authState.clear(),
+      ),
+    );
     _ready = true;
   }
 
+  /// Cached login check: trusts the local cache and skips the network.
+  /// On first run (cache empty) it verifies once via the network and caches
+  /// the result. A stale `true` self-heals: the first authenticated call
+  /// that returns 401 clears the cache (see [SessionInvalidatedInterceptor]).
   Future<bool> get isLoggedIn async {
+    final cached = await _authState.read();
+    if (cached != null) return cached;
     try {
       final res = await dio.get('/api/financial-accounts');
-      return res.statusCode == 200;
+      final ok = res.statusCode == 200;
+      await _authState.write(ok);
+      return ok;
     } catch (_) {
+      await _authState.write(false);
       return false;
     }
   }
@@ -59,6 +81,7 @@ class CuanApi {
       data: {'email': email, 'password': password},
       options: Options(headers: {'Origin': baseUrl}),
     );
+    await _authState.write(true);
   }
 
   Future<void> signUp(String name, String email, String password) async {
@@ -67,6 +90,9 @@ class CuanApi {
       data: {'name': name, 'email': email, 'password': password},
       options: Options(headers: {'Origin': baseUrl}),
     );
+    // Sign-up does not create a session (user must log in afterwards),
+    // so explicitly record logged-out rather than leaving stale state.
+    await _authState.write(false);
   }
 
   Future<void> signOut() async {
@@ -76,6 +102,8 @@ class CuanApi {
       // Best-effort sign-out: log in debug so failures are visible to devs,
       // but don't block the user from being signed out locally.
       debugPrint('CuanApi.signOut failed: $e');
+    } finally {
+      await _authState.clear();
     }
   }
 
