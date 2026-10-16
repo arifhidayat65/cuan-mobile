@@ -68,9 +68,8 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         greeting,
-                        style: TextStyle(
+                        style: LedgerTheme.bodyMedium.copyWith(
                           color: LedgerTheme.muted,
-                          fontSize: 14,
                         ),
                       ),
                       GestureDetector(
@@ -98,7 +97,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                   // Hero card — the one big object. Serif balance, no glow.
+                  // Staggered entrance: hero first, then sections below.
                   FadeIn(
+                      duration: const Duration(milliseconds: 250),
                       child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(22),
@@ -145,10 +146,12 @@ class _HomePageState extends State<HomePage> {
                         SizedBox(height: 6),
                         Text(
                           '${state.accounts.length} akun terhubung',
-                          style: TextStyle(
-                            color:
-                                const Color(0xFFF2F5F3).withValues(alpha: 0.7),
+                          // Hero card bg is always dark — caption sized,
+                          // light ink at 70% for both theme modes.
+                          style: LedgerTheme.caption.copyWith(
                             fontSize: 13,
+                            color: const Color(0xFFF2F5F3)
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -157,13 +160,17 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 20),
                   // AI prompt bar — the super power, one tap away.
                   FadeIn(
-                    delay: const Duration(milliseconds: 80),
+                    delay: const Duration(milliseconds: 60),
+                    duration: const Duration(milliseconds: 250),
                     child: _AiPromptBar(onTap: () => _goAssistant(context)),
                   ),
                   const SizedBox(height: 16),
                   // Quick actions — savings, debts, split bill.
                   // Single consistent treatment: solid tile, accent icon.
-                  Row(
+                  FadeIn(
+                    delay: const Duration(milliseconds: 120),
+                    duration: const Duration(milliseconds: 250),
+                    child: Row(
                     children: [
                       _quickAction(
                         context,
@@ -186,51 +193,71 @@ class _HomePageState extends State<HomePage> {
                         const SplitBillPage(),
                       ),
                     ],
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  _MonthStrip(stats: state.monthlyStats),
+                  FadeIn(
+                    delay: const Duration(milliseconds: 180),
+                    duration: const Duration(milliseconds: 250),
+                    child: _MonthStrip(stats: state.monthlyStats),
+                  ),
                   const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Terakhir',
-                        style: TextStyle(
-                          color: LedgerTheme.text,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                  FadeIn(
+                    delay: const Duration(milliseconds: 220),
+                    duration: const Duration(milliseconds: 250),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Terakhir',
+                          style: LedgerTheme.headlineMedium
+                              .copyWith(fontSize: 16),
                         ),
-                      ),
                       TextButton(
                         onPressed: () =>
                             context.read<NavigationCubit>().selectTab(1),
                         child: Text(
                           'Lihat semua',
+                          // Interactive link — accent is correct here.
                           style: TextStyle(
                               color: LedgerTheme.accent, fontSize: 13),
                         ),
                       ),
                     ],
+                    ),
                   ),
                   SizedBox(height: 8),
-                  if (recent.isEmpty)
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 32),
-                      child: Center(
-                        child: Text(
-                          'Belum ada transaksi.\nCeritakan ke Cuan lewat chat.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: LedgerTheme.muted),
-                        ),
-                      ),
-                    )
-                  else ...[
-                    WeeklyExpenseChart(transactions: recent),
-                    const SizedBox(height: 12),
-                    const HealthScoreCard(),
-                    const SizedBox(height: 16),
-                    ...recent.take(6).map((t) => TransactionTile(tx: t)),
-                  ],
+                  FadeIn(
+                    delay: const Duration(milliseconds: 260),
+                    duration: const Duration(milliseconds: 250),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (recent.isEmpty)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: Center(
+                              child: Text(
+                                'Belum ada transaksi.\nCeritakan ke Cuan lewat chat.',
+                                textAlign: TextAlign.center,
+                                style: LedgerTheme.bodyMedium.copyWith(
+                                  color: LedgerTheme.muted,
+                                ),
+                              ),
+                            ),
+                          )
+                        else ...[
+                          WeeklyExpenseChart(transactions: recent),
+                          const SizedBox(height: 12),
+                          const HealthScoreCard(),
+                          const SizedBox(height: 16),
+                          ...recent
+                              .take(6)
+                              .map((t) => TransactionTile(tx: t)),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               );
             },
@@ -273,9 +300,8 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 8),
               Text(
                 label,
-                style: TextStyle(
+                style: LedgerTheme.caption.copyWith(
                   color: LedgerTheme.text,
-                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -326,7 +352,9 @@ class _AiPromptBar extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Ceritakan pengeluaranmu…',
-                  style: TextStyle(color: LedgerTheme.muted, fontSize: 14),
+                  style: LedgerTheme.bodyMedium.copyWith(
+                    color: LedgerTheme.muted,
+                  ),
                 ),
               ),
               const Icon(
@@ -380,8 +408,7 @@ class _MonthStrip extends StatelessWidget {
         children: [
           Text(
             'Bulan ini · ${months[now.month]} ${now.year}',
-            style: TextStyle(
-              color: LedgerTheme.muted,
+            style: LedgerTheme.caption.copyWith(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.6,
@@ -420,16 +447,17 @@ class _MonthStrip extends StatelessWidget {
             SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(color: LedgerTheme.muted, fontSize: 11),
+              style: LedgerTheme.caption.copyWith(fontSize: 11),
             ),
           ],
         ),
         const SizedBox(height: 6),
         Text(
           idrCompact(value),
-          style: TextStyle(
+          // Semantic data color (income/expense/neutral) — kept by design;
+          // hierarchy comes from the bodyMedium token + tabular figures.
+          style: LedgerTheme.bodyMedium.copyWith(
             color: color,
-            fontSize: 14,
             fontWeight: FontWeight.w700,
             fontFeatures: const [FontFeature.tabularFigures()],
           ),

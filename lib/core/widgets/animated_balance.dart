@@ -63,7 +63,10 @@ class _AnimatedBalanceState extends State<AnimatedBalance>
       animation: _anim,
       builder: (_, __) => Text(
         idr(_anim.value),
-        style: LedgerTheme.displaySerif(40, color: widget.color),
+        // Hero number uses the displayLarge token; the hero card background
+        // is always dark, so keep the text light in both theme modes.
+        style: LedgerTheme.displayLarge
+            .copyWith(color: widget.color ?? LedgerTheme.text),
       ),
     );
   }
