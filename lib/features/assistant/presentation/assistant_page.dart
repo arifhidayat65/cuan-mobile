@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../../core/theme/ledger_theme.dart';
@@ -8,11 +9,15 @@ import '../../../core/widgets/border_beam.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../bloc/assistant_cubit.dart';
 import '../bloc/assistant_state.dart';
+import '../data/mic_feedback.dart';
 
 /// The super power — chat-first AI finance assistant.
 /// Dark, calm, streaming replies with inline transaction cards.
 class AssistantPage extends StatefulWidget {
-  const AssistantPage({super.key});
+  const AssistantPage({super.key, this.speech});
+
+  /// Injectable speech instance — tests pass a fake here.
+  final SpeechToText? speech;
 
   @override
   State<AssistantPage> createState() => _AssistantPageState();
@@ -21,7 +26,7 @@ class AssistantPage extends StatefulWidget {
 class _AssistantPageState extends State<AssistantPage> {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  final _speech = SpeechToText();
+  late final _speech = widget.speech ?? SpeechToText();
 
   static const _suggestions = [
     'Kopi 25rb',
@@ -44,15 +49,29 @@ class _AssistantPageState extends State<AssistantPage> {
       cubit.setListening(false);
       return;
     }
+    SpeechRecognitionError? lastError;
     final available = await _speech.initialize(
-      onError: (_) => cubit.setListening(false),
+      onError: (e) {
+        lastError = e;
+        cubit.setListening(false);
+      },
       onStatus: (s) {
         if (s == 'done' || s == 'notListening') {
           cubit.setListening(false);
         }
       },
     );
-    if (!available) return;
+    if (!available) {
+      // Silent failure was QA finding #6 — tell the user what happened.
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(micFailureMessage(classifyMicFailure(lastError))),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     cubit.setListening(true);
     await _speech.listen(
       onResult: (r) {
@@ -192,29 +211,10 @@ class _AssistantPageState extends State<AssistantPage> {
                   const SizedBox(width: 8),
                   BlocBuilder<AssistantCubit, AssistantState>(
                     buildWhen: (a, b) => a.listening != b.listening,
-                    builder: (context, state) {
-                      final listening = state.listening;
-                      return Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: listening
-                              ? LedgerTheme.rose
-                              : LedgerTheme.surface2,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: LedgerTheme.border),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            listening ? Icons.stop : Icons.mic,
-                            color: listening
-                                ? Colors.white
-                                : LedgerTheme.text,
-                          ),
-                          onPressed: _toggleListening,
-                        ),
-                      );
-                    },
+                    builder: (context, state) => _MicButton(
+                      listening: state.listening,
+                      onPressed: _toggleListening,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   BlocBuilder<AssistantCubit, AssistantState>(
@@ -469,6 +469,101 @@ class _TypingBubbleState extends State<_TypingBubble>
             }),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Mic button with feedback: a pulsing ring while listening, a tooltip for
+/// discoverability, and (in [_AssistantPageState._toggleListening]) a
+/// snackbar when speech recognition can't start.
+class _MicButton extends StatefulWidget {
+  const _MicButton({required this.listening, required this.onPressed});
+
+  final bool listening;
+  final VoidCallback onPressed;
+
+  @override
+  State<_MicButton> createState() => _MicButtonState();
+}
+
+class _MicButtonState extends State<_MicButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+    if (widget.listening) _c.repeat();
+  }
+
+  @override
+  void didUpdateWidget(_MicButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.listening && !_c.isAnimating) {
+      _c.repeat();
+    } else if (!widget.listening && _c.isAnimating) {
+      _c
+        ..stop()
+        ..reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final listening = widget.listening;
+    return SizedBox(
+      width: 58,
+      height: 58,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (listening)
+            AnimatedBuilder(
+              animation: _c,
+              builder: (_, __) {
+                final t = _c.value;
+                return Container(
+                  width: 50 * (1 + 0.18 * t),
+                  height: 50 * (1 + 0.18 * t),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: LedgerTheme.rose.withValues(alpha: 0.7 * (1 - t)),
+                      width: 2,
+                    ),
+                  ),
+                );
+              },
+            ),
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: listening ? LedgerTheme.rose : LedgerTheme.surface2,
+              shape: BoxShape.circle,
+              border: Border.all(color: LedgerTheme.border),
+            ),
+            child: IconButton(
+              tooltip: 'Input suara',
+              icon: Icon(
+                listening ? Icons.stop : Icons.mic,
+                color: listening ? Colors.white : LedgerTheme.text,
+              ),
+              onPressed: widget.onPressed,
+            ),
+          ),
+        ],
       ),
     );
   }
