@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../../core/widgets/ledger_fab.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../bloc/savings_cubit.dart';
 import '../bloc/savings_state.dart';
 import '../data/savings_repository.dart';
@@ -34,12 +37,23 @@ class SavingsPage extends StatelessWidget {
             onPressed: () => _showCreateSheet(ctx),
           ),
         ),
-        body: BlocBuilder<SavingsCubit, SavingsState>(
+        body: BlocConsumer<SavingsCubit, SavingsState>(
+          listenWhen: (prev, curr) =>
+              curr.sessionExpired && !prev.sessionExpired,
+          listener: (context, _) {
+            context.read<AuthBloc>().add(const AuthLogoutRequested());
+          },
           builder: (context, state) {
             if (state.status == SavingsStatus.loading ||
                 state.status == SavingsStatus.initial) {
               return const Center(
                 child: CircularProgressIndicator(color: LedgerTheme.accent),
+              );
+            }
+            if (state.status == SavingsStatus.error) {
+              return ErrorStateCard(
+                message: state.errorMessage,
+                onRetry: () => context.read<SavingsCubit>().load(),
               );
             }
             if (state.items.isEmpty) {

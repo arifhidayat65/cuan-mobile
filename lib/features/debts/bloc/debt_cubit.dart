@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/load_error.dart';
 import '../data/debt_repository.dart';
 import 'debt_state.dart';
 
@@ -13,8 +14,15 @@ class DebtCubit extends Cubit<DebtState> {
     try {
       final items = await _repo.list(type: state.filter);
       emit(state.copyWith(status: DebtStatus.loaded, items: items));
-    } catch (_) {
-      emit(state.copyWith(status: DebtStatus.error));
+    } catch (e) {
+      final err = classifyLoadError(e);
+      emit(
+        state.copyWith(
+          status: DebtStatus.error,
+          errorMessage: err.message,
+          sessionExpired: err.sessionExpired,
+        ),
+      );
     }
   }
 

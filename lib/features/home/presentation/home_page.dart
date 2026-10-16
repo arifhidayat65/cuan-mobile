@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/animated_balance.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../../core/widgets/transaction_tile.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../../settings/presentation/settings_page.dart';
 import '../../shell/bloc/navigation_cubit.dart';
 import '../../savings/presentation/savings_page.dart';
@@ -51,12 +54,24 @@ class _HomePageState extends State<HomePage> {
           color: LedgerTheme.accent,
           backgroundColor: LedgerTheme.surface,
           onRefresh: () => context.read<HomeCubit>().load(),
-          child: BlocBuilder<HomeCubit, HomeState>(
+          child: BlocConsumer<HomeCubit, HomeState>(
+            listenWhen: (prev, curr) =>
+                curr.sessionExpired && !prev.sessionExpired,
+            listener: (context, _) {
+              // Session died mid-use — back to the login form.
+              context.read<AuthBloc>().add(const AuthLogoutRequested());
+            },
             builder: (context, state) {
               if (state.status == HomeStatus.loading ||
                   state.status == HomeStatus.initial) {
                 return const Center(
                   child: CircularProgressIndicator(color: LedgerTheme.accent),
+                );
+              }
+              if (state.status == HomeStatus.error) {
+                return ErrorStateCard(
+                  message: state.errorMessage,
+                  onRetry: () => context.read<HomeCubit>().load(),
                 );
               }
               final recent = state.transactions;

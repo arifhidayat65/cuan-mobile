@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../auth/bloc/auth_bloc.dart';
@@ -41,12 +42,23 @@ class _AccountsPageState extends State<AccountsPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<AccountsCubit, AccountsState>(
+        child: BlocConsumer<AccountsCubit, AccountsState>(
+          listenWhen: (prev, curr) =>
+              curr.sessionExpired && !prev.sessionExpired,
+          listener: (context, _) {
+            context.read<AuthBloc>().add(const AuthLogoutRequested());
+          },
           builder: (context, state) {
             if (state.status == AccountsStatus.loading ||
                 state.status == AccountsStatus.initial) {
               return const Center(
                 child: CircularProgressIndicator(color: LedgerTheme.accent),
+              );
+            }
+            if (state.status == AccountsStatus.error) {
+              return ErrorStateCard(
+                message: state.errorMessage,
+                onRetry: () => context.read<AccountsCubit>().load(),
               );
             }
             final accounts = state.accounts;

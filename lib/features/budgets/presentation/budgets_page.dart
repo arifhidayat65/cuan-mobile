@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../bloc/budgets_cubit.dart';
 import '../bloc/budgets_state.dart';
 
@@ -50,12 +53,23 @@ class _BudgetsPageState extends State<BudgetsPage> {
         ],
       ),
       body: SafeArea(
-        child: BlocBuilder<BudgetsCubit, BudgetsState>(
+        child: BlocConsumer<BudgetsCubit, BudgetsState>(
+          listenWhen: (prev, curr) =>
+              curr.sessionExpired && !prev.sessionExpired,
+          listener: (context, _) {
+            context.read<AuthBloc>().add(const AuthLogoutRequested());
+          },
           builder: (context, state) {
             if (state.status == BudgetsStatus.loading ||
                 state.status == BudgetsStatus.initial) {
               return const Center(
                 child: CircularProgressIndicator(color: LedgerTheme.accent),
+              );
+            }
+            if (state.status == BudgetsStatus.error) {
+              return ErrorStateCard(
+                message: state.errorMessage,
+                onRetry: () => context.read<BudgetsCubit>().load(),
               );
             }
             final budgets = state.budgets;

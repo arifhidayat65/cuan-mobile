@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../../core/widgets/ledger_fab.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../bloc/recurring_cubit.dart';
 import '../bloc/recurring_form_cubit.dart';
 import '../bloc/recurring_state.dart';
@@ -64,12 +67,23 @@ class RecurringPage extends StatelessWidget {
             onPressed: () => _showCreateSheet(ctx),
           ),
         ),
-        body: BlocBuilder<RecurringCubit, RecurringState>(
+        body: BlocConsumer<RecurringCubit, RecurringState>(
+          listenWhen: (prev, curr) =>
+              curr.sessionExpired && !prev.sessionExpired,
+          listener: (context, _) {
+            context.read<AuthBloc>().add(const AuthLogoutRequested());
+          },
           builder: (context, state) {
             if (state.status == RecurringStatus.loading ||
                 state.status == RecurringStatus.initial) {
               return const Center(
                 child: CircularProgressIndicator(color: LedgerTheme.accent),
+              );
+            }
+            if (state.status == RecurringStatus.error) {
+              return ErrorStateCard(
+                message: state.errorMessage,
+                onRetry: () => context.read<RecurringCubit>().load(),
               );
             }
             if (state.items.isEmpty) {

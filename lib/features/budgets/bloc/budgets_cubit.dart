@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/utils/format.dart';
+import '../../../core/utils/load_error.dart';
 import '../data/budgets_repository.dart';
 import 'budgets_state.dart';
 
@@ -15,8 +16,15 @@ class BudgetsCubit extends Cubit<BudgetsState> {
     try {
       final budgets = await _repo.budgets(monthKey(DateTime.now()));
       emit(state.copyWith(status: BudgetsStatus.loaded, budgets: budgets));
-    } catch (_) {
-      emit(state.copyWith(status: BudgetsStatus.error));
+    } catch (e) {
+      final err = classifyLoadError(e);
+      emit(
+        state.copyWith(
+          status: BudgetsStatus.error,
+          errorMessage: err.message,
+          sessionExpired: err.sessionExpired,
+        ),
+      );
     }
   }
 

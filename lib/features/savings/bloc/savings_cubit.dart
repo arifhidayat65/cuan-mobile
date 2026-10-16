@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/load_error.dart';
 import '../data/savings_repository.dart';
 import 'savings_state.dart';
 
@@ -14,7 +15,14 @@ class SavingsCubit extends Cubit<SavingsState> {
       final items = await _repo.list();
       emit(state.copyWith(status: SavingsStatus.loaded, items: items));
     } catch (e) {
-      emit(state.copyWith(status: SavingsStatus.error, error: '$e'));
+      final err = classifyLoadError(e);
+      emit(
+        state.copyWith(
+          status: SavingsStatus.error,
+          errorMessage: err.message,
+          sessionExpired: err.sessionExpired,
+        ),
+      );
     }
   }
 

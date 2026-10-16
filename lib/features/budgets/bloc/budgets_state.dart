@@ -10,6 +10,8 @@ final class BudgetsState extends Equatable {
     this.categories = const [],
     this.saving = false,
     this.selectedCategoryId,
+    this.errorMessage = '',
+    this.sessionExpired = false,
   });
 
   final BudgetsStatus status;
@@ -18,12 +20,18 @@ final class BudgetsState extends Equatable {
   final bool saving;
   final int? selectedCategoryId;
 
+  /// Set when [status] is error: user-facing message + whether the session died.
+  final String errorMessage;
+  final bool sessionExpired;
+
   BudgetsState copyWith({
     BudgetsStatus? status,
     List<Map<String, dynamic>>? budgets,
     List<Map<String, dynamic>>? categories,
     bool? saving,
     int? selectedCategoryId,
+    String? errorMessage,
+    bool? sessionExpired,
   }) {
     return BudgetsState(
       status: status ?? this.status,
@@ -31,10 +39,19 @@ final class BudgetsState extends Equatable {
       categories: categories ?? this.categories,
       saving: saving ?? this.saving,
       selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
+      errorMessage: errorMessage ?? this.errorMessage,
+      sessionExpired: sessionExpired ?? this.sessionExpired,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [status, budgets, categories, saving, selectedCategoryId];
+  List<Object?> get props => [
+        status,
+        budgets,
+        categories,
+        saving,
+        selectedCategoryId,
+        errorMessage,
+        sessionExpired,
+      ];
 }

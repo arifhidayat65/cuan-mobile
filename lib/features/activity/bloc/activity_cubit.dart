@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/load_error.dart';
 import '../data/activity_repository.dart';
 import 'activity_state.dart';
 
@@ -14,8 +15,15 @@ class ActivityCubit extends Cubit<ActivityState> {
     try {
       final txs = await _repo.transactions();
       emit(state.copyWith(status: ActivityStatus.loaded, transactions: txs));
-    } catch (_) {
-      emit(state.copyWith(status: ActivityStatus.error));
+    } catch (e) {
+      final err = classifyLoadError(e);
+      emit(
+        state.copyWith(
+          status: ActivityStatus.error,
+          errorMessage: err.message,
+          sessionExpired: err.sessionExpired,
+        ),
+      );
     }
   }
 

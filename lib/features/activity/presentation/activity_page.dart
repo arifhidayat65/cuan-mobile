@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/ledger_theme.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/transaction_tile.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../bloc/activity_cubit.dart';
 import '../bloc/activity_state.dart';
 import '../../recurring/presentation/recurring_page.dart';
@@ -94,13 +97,24 @@ class _ActivityPageState extends State<ActivityPage> {
             ),
             const SizedBox(height: 4),
             Expanded(
-              child: BlocBuilder<ActivityCubit, ActivityState>(
+              child: BlocConsumer<ActivityCubit, ActivityState>(
+                listenWhen: (prev, curr) =>
+                    curr.sessionExpired && !prev.sessionExpired,
+                listener: (context, _) {
+                  context.read<AuthBloc>().add(const AuthLogoutRequested());
+                },
                 builder: (context, state) {
                   if (state.status == ActivityStatus.loading ||
                       state.status == ActivityStatus.initial) {
                     return const Center(
                       child:
                           CircularProgressIndicator(color: LedgerTheme.accent),
+                    );
+                  }
+                  if (state.status == ActivityStatus.error) {
+                    return ErrorStateCard(
+                      message: state.errorMessage,
+                      onRetry: () => context.read<ActivityCubit>().load(),
                     );
                   }
                   final visible = state.visible;

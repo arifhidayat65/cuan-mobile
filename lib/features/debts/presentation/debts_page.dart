@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state_card.dart';
 import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/gradient_avatar.dart';
 import '../../../core/widgets/ledger_fab.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_event.dart';
 import '../bloc/debt_cubit.dart';
 import '../bloc/debt_form_cubit.dart';
 import '../bloc/debt_state.dart';
@@ -35,7 +38,12 @@ class DebtsPage extends StatelessWidget {
             onPressed: () => _showCreateSheet(ctx),
           ),
         ),
-        body: BlocBuilder<DebtCubit, DebtState>(
+        body: BlocConsumer<DebtCubit, DebtState>(
+          listenWhen: (prev, curr) =>
+              curr.sessionExpired && !prev.sessionExpired,
+          listener: (context, _) {
+            context.read<AuthBloc>().add(const AuthLogoutRequested());
+          },
           builder: (context, state) {
             return Column(
               children: [
@@ -69,6 +77,12 @@ class DebtsPage extends StatelessWidget {
         state.status == DebtStatus.initial) {
       return const Center(
         child: CircularProgressIndicator(color: LedgerTheme.accent),
+      );
+    }
+    if (state.status == DebtStatus.error) {
+      return ErrorStateCard(
+        message: state.errorMessage,
+        onRetry: () => context.read<DebtCubit>().load(),
       );
     }
     if (state.items.isEmpty) {

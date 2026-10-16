@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/utils/load_error.dart';
 import '../data/home_repository.dart';
 import 'home_state.dart';
 
@@ -23,8 +24,15 @@ class HomeCubit extends Cubit<HomeState> {
           monthlyStats: stats,
         ),
       );
-    } catch (_) {
-      emit(state.copyWith(status: HomeStatus.error));
+    } catch (e) {
+      final err = classifyLoadError(e);
+      emit(
+        state.copyWith(
+          status: HomeStatus.error,
+          errorMessage: err.message,
+          sessionExpired: err.sessionExpired,
+        ),
+      );
     }
   }
 }
