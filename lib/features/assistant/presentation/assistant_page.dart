@@ -4,6 +4,8 @@ import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../../core/theme/ledger_theme.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/widgets/border_beam.dart';
+import '../../../core/widgets/fade_in.dart';
 import '../bloc/assistant_cubit.dart';
 import '../bloc/assistant_state.dart';
 
@@ -90,11 +92,21 @@ class _AssistantPageState extends State<AssistantPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.auto_awesome, color: LedgerTheme.accent, size: 20),
+            // The signature AI accent — the one place BorderBeam is allowed.
+            BorderBeam(
+              size: 32,
+              child: Icon(
+                Icons.auto_awesome,
+                color: LedgerTheme.accent,
+                size: 18,
+              ),
+            ),
             SizedBox(width: 8),
-            Text('Assistant',
-                style: TextStyle(
-                    color: LedgerTheme.text, fontWeight: FontWeight.w600)),
+            Text(
+              'Assistant',
+              style: LedgerTheme.bodyLarge
+                  .copyWith(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         actions: [
@@ -112,11 +124,16 @@ class _AssistantPageState extends State<AssistantPage> {
                 listener: (_, __) => _jump(),
                 builder: (context, state) {
                   final msgs = state.messages;
+                  final isEmpty = msgs.isEmpty && !state.busy;
                   return ListView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    itemCount: msgs.length + (state.busy ? 1 : 0),
+                    itemCount:
+                        isEmpty ? 1 : msgs.length + (state.busy ? 1 : 0),
                     itemBuilder: (ctx, i) {
+                      if (isEmpty) {
+                        return const _WelcomeBlock();
+                      }
                       if (i >= msgs.length) {
                         return const _TypingBubble();
                       }
@@ -143,8 +160,8 @@ class _AssistantPageState extends State<AssistantPage> {
                           label: Text(_suggestions[i]),
                           backgroundColor: LedgerTheme.surface,
                           side: BorderSide(color: LedgerTheme.border),
-                          labelStyle:
-                              TextStyle(color: LedgerTheme.text, fontSize: 13),
+                          labelStyle: LedgerTheme.bodyMedium
+                              .copyWith(fontSize: 13),
                           onPressed: () => _send(_suggestions[i]),
                         ),
                       ),
@@ -161,7 +178,7 @@ class _AssistantPageState extends State<AssistantPage> {
                   Expanded(
                     child: TextField(
                       controller: _ctrl,
-                      style: TextStyle(color: LedgerTheme.text),
+                      style: LedgerTheme.bodyMedium,
                       decoration: InputDecoration(
                         hintText: 'Ceritakan ke Cuan…',
                         contentPadding: EdgeInsets.symmetric(
@@ -246,6 +263,53 @@ class _AssistantPageState extends State<AssistantPage> {
   }
 }
 
+/// Designed empty-chat state — the AI greeting before the first message.
+class _WelcomeBlock extends StatelessWidget {
+  const _WelcomeBlock();
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeIn(
+      duration: const Duration(milliseconds: 250),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+        child: Column(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: LedgerTheme.surface2,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: LedgerTheme.accent.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Icon(
+                Icons.auto_awesome,
+                color: LedgerTheme.accent,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Mau catat apa hari ini?',
+              style: LedgerTheme.headlineMedium.copyWith(fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ceritakan pengeluaranmu dengan bahasa sehari-hari, saya yang mencatatnya.',
+              style: LedgerTheme.caption,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _Bubble extends StatelessWidget {
   final ChatMessage msg;
   const _Bubble({required this.msg});
@@ -266,7 +330,7 @@ class _Bubble extends StatelessWidget {
           ),
           child: Text(
             msg.text,
-            style: TextStyle(color: LedgerTheme.text, fontSize: 14),
+            style: LedgerTheme.bodyMedium,
           ),
         ),
       );
@@ -288,8 +352,7 @@ class _Bubble extends StatelessWidget {
           children: [
             Text(
               msg.text,
-              style: TextStyle(
-                  color: LedgerTheme.text, fontSize: 14, height: 1.45),
+              style: LedgerTheme.bodyMedium.copyWith(height: 1.45),
             ),
             if (msg.transactions?.isNotEmpty == true) ...[
               const SizedBox(height: 10),
@@ -328,14 +391,14 @@ class _TxCard extends StatelessWidget {
           Expanded(
             child: Text(
               (tx['description'] as String?) ?? '-',
-              style: TextStyle(color: LedgerTheme.text, fontSize: 13),
+              style: LedgerTheme.bodyMedium.copyWith(fontSize: 13),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           Text(
             idr(amount),
-            style: TextStyle(
+            style: LedgerTheme.bodyMedium.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: isIncome ? LedgerTheme.income : LedgerTheme.expense,

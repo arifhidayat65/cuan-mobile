@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/ledger_theme.dart';
+import '../../../core/widgets/fade_in.dart';
 import '../../../core/widgets/transaction_tile.dart';
 import '../bloc/activity_cubit.dart';
 import '../bloc/activity_state.dart';
@@ -27,7 +28,8 @@ class _ActivityPageState extends State<ActivityPage> {
     return Scaffold(
       backgroundColor: LedgerTheme.bg,
       appBar: AppBar(
-        title: Text('Activity', style: LedgerTheme.displaySerif(26)),
+        // Title style comes from the theme (displaySerif 26).
+        title: const Text('Activity'),
         actions: [
           IconButton(
             tooltip: 'Transaksi berulang',
@@ -41,34 +43,41 @@ class _ActivityPageState extends State<ActivityPage> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: TextField(
-                style: TextStyle(color: LedgerTheme.text),
-                decoration: InputDecoration(
-                  hintText: 'Cari transaksi…',
-                  prefixIcon: Icon(Icons.search, color: LedgerTheme.muted),
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+            FadeIn(
+              duration: const Duration(milliseconds: 250),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: TextField(
+                  style: LedgerTheme.bodyMedium,
+                  decoration: InputDecoration(
+                    hintText: 'Cari transaksi…',
+                    prefixIcon: Icon(Icons.search, color: LedgerTheme.muted),
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onChanged: (v) => context.read<ActivityCubit>().setQuery(v),
                 ),
-                onChanged: (v) => context.read<ActivityCubit>().setQuery(v),
               ),
             ),
-            BlocBuilder<ActivityCubit, ActivityState>(
-              buildWhen: (a, b) => a.filter != b.filter,
-              builder: (context, state) {
-                return SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      _chip(context, state, 'all', 'Semua'),
-                      _chip(context, state, 'expense', 'Keluar'),
-                      _chip(context, state, 'income', 'Masuk'),
-                    ],
-                  ),
-                );
-              },
+            FadeIn(
+              delay: const Duration(milliseconds: 60),
+              duration: const Duration(milliseconds: 250),
+              child: BlocBuilder<ActivityCubit, ActivityState>(
+                buildWhen: (a, b) => a.filter != b.filter,
+                builder: (context, state) {
+                  return SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        _chip(context, state, 'all', 'Semua'),
+                        _chip(context, state, 'expense', 'Keluar'),
+                        _chip(context, state, 'income', 'Masuk'),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 4),
             Expanded(
@@ -87,10 +96,46 @@ class _ActivityPageState extends State<ActivityPage> {
                     backgroundColor: LedgerTheme.surface,
                     onRefresh: () => context.read<ActivityCubit>().load(),
                     child: visible.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Tidak ada transaksi.',
-                              style: TextStyle(color: LedgerTheme.muted),
+                        ? FadeIn(
+                            delay: const Duration(milliseconds: 120),
+                            duration: const Duration(milliseconds: 250),
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 40),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: BoxDecoration(
+                                        color: LedgerTheme.surface2,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: LedgerTheme.border),
+                                      ),
+                                      child: Icon(
+                                        Icons.receipt_long_outlined,
+                                        color: LedgerTheme.muted,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Belum ada transaksi',
+                                      style: LedgerTheme.headlineMedium
+                                          .copyWith(fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Catat pengeluaran lewat chat AI, dan semuanya akan tercatat di sini.',
+                                      style: LedgerTheme.caption,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           )
                         : ListView.separated(
@@ -131,7 +176,9 @@ class _ActivityPageState extends State<ActivityPage> {
         side: BorderSide(
           color: active ? LedgerTheme.accent : LedgerTheme.border,
         ),
-        labelStyle: TextStyle(
+        labelStyle: LedgerTheme.bodyMedium.copyWith(
+          // Selected chip label keeps the accent: it IS the interactive
+          // control's selected state, not body copy.
           color: active ? LedgerTheme.accent : LedgerTheme.muted,
           fontSize: 13,
         ),
