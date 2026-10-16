@@ -4,6 +4,7 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'rate_limit_interceptor.dart';
+import 'secure_cookie_storage.dart';
 
 /// API client for the Cuan backend.
 /// Uses persistent cookies (Better Auth session) via dio_cookie_manager.
@@ -16,7 +17,16 @@ class CuanApi {
   Future<void> init() async {
     if (_ready) return;
     final dir = await getApplicationDocumentsDirectory();
-    final jar = PersistCookieJar(storage: FileStorage('${dir.path}/cookies'));
+    final secureStorage = SecureCookieStorage();
+    // One-time migration from the legacy plaintext cookie files.
+    // Best-effort: on failure the user simply re-logs in.
+    try {
+      await migrateLegacyCookies(
+        legacyDirPath: '${dir.path}/cookies',
+        target: secureStorage,
+      );
+    } catch (_) {}
+    final jar = PersistCookieJar(storage: secureStorage);
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
